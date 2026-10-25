@@ -5,6 +5,8 @@ import helmet from 'helmet'
 import { initDatabase } from './config/database-init.js';
 import pool from './config/database.js';
 import dreamsRouter from './routes/dreams.js';
+import { rateLimit } from 'express-rate-limit';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,7 +20,16 @@ if (process.env.NODE_ENV === 'production') {
 
 const PORT = process.env.PORT || 3001;
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: 'draft-8', // Return standard rate limit headers
+  legacyHeaders: false, // Disable the X-RateLimit-* headers
+  message: 'Too many requests, please try again later.'
+});
+
 // Middleware
+app.use(limiter);
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
